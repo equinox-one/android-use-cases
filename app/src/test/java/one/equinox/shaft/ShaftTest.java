@@ -53,12 +53,40 @@ public class ShaftTest {
     }
 
     @Test
-    public void executeUseCaseWithParams() throws ExecutionException, InterruptedException {
-        final Integer value = 3;
+    public void executeExceptionUseCase() throws ExecutionException, InterruptedException {
+        Callable<String> sampleUseCase = new SampleExceptionTestUseCase();
 
-        Callable<Integer> sampleUseCase = SampleTestUseCaseWithParams.getBuilder().page(value).build();
+        ShaftFuture<String> result = executor.submit(sampleUseCase);
+        result.setListeners(null, new ErrorListener() {
+            @Override
+            public void onError(Throwable e) {
+                downLatch.countDown();
+                assertTrue(e instanceof SampleExceptionTestUseCase.MyException);
+            }
+        });
 
-        ShaftFuture<Integer> result = executor.submit(sampleUseCase);
+        downLatch.await();
+    }
+
+
+
+
+    @Test
+    public void executeUseCaseSuccesful() throws ExecutionException, InterruptedException {
+        testUseCase(3, 0);
+        testUseCase(33, 1000);
+    }
+
+    @Test
+    public void executeUseCaseWithError() throws ExecutionException, InterruptedException {
+        Exception exception = new Exception();
+        testUseCase(exception, 0);
+        testUseCase(exception, 1000);
+    }
+
+    public void testUseCase(final Integer value, int waitTime) throws ExecutionException, InterruptedException {
+        Callable<Integer> useCase = SampleTestUseCaseWithParams.getBuilder().result(value).waitTime(waitTime).build();
+        ShaftFuture<Integer> result = executor.submit(useCase);
         result.setListeners(new SuccessListener<Integer>() {
             @Override
             public void onSuccess(Integer result) {
@@ -71,18 +99,17 @@ public class ShaftTest {
         assertEquals(value, result.get());
     }
 
-    @Test
-    public void executeExceptionUseCase() throws ExecutionException, InterruptedException {
-        Callable<String> sampleUseCase = new SampleExceptionTestUseCase();
-
-        ShaftFuture<String> result = executor.submit(sampleUseCase);
-        result.setListeners(null, new ErrorListener() {
-            @Override
-            public void onError(Throwable e) {
-                downLatch.countDown();
-                assertTrue(e instanceof SampleExceptionTestUseCase.MyException);
-            }
-        });
+    public void testUseCase(final Exception exception, int waitTime) throws ExecutionException, InterruptedException {
+        Callable<Integer> useCase = SampleTestUseCaseWithParams.getBuilder().exception(exception).waitTime(waitTime).build();
+        ShaftFuture<Integer> result = executor.submit(useCase);
+        result.setListeners(null,
+                new ErrorListener() {
+                    @Override
+                    public void onError(Throwable e) {
+                        downLatch.countDown();
+                        assertEquals(e, exception);
+                    }
+                });
 
         downLatch.await();
 
