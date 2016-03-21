@@ -1,4 +1,4 @@
-package one.equinox.usecases;
+package one.equinox.shaft;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -9,12 +9,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import one.equinox.shaft.ShaftFuture;
-import one.equinox.shaft.ShaftExecutors;
-import one.equinox.shaft.ShaftThreadPoolExecutor;
-import one.equinox.usecases.usecases.SampleExceptionTestUseCase;
-import one.equinox.usecases.usecases.SampleTestUseCase;
-import one.equinox.usecases.usecases.SampleTestUseCaseWithParams;
+import one.equinox.shaft.usecases.SampleExceptionTestUseCase;
+import one.equinox.shaft.usecases.SampleTestUseCase;
+import one.equinox.shaft.usecases.SampleTestUseCaseWithParams;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -23,7 +20,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Created by mateuyabar on 21/03/16.
  */
-public class UseCaseTest {
+public class ShaftTest {
     CountDownLatch downLatch;
     ShaftThreadPoolExecutor executor = ShaftExecutors.newFixedThreadPool(3);
 
@@ -43,7 +40,7 @@ public class UseCaseTest {
         Callable<String> sampleUseCase = new SampleTestUseCase();
 
         ShaftFuture<String> result = executor.submit(sampleUseCase);
-        result.setListeners(new ShaftFuture.SuccessListener<String>() {
+        result.setListeners(new SuccessListener<String>() {
             @Override
             public void onSuccess(String result) {
                 downLatch.countDown();
@@ -62,7 +59,7 @@ public class UseCaseTest {
         Callable<Integer> sampleUseCase = SampleTestUseCaseWithParams.getBuilder().page(value).build();
 
         ShaftFuture<Integer> result = executor.submit(sampleUseCase);
-        result.setListeners(new ShaftFuture.SuccessListener<Integer>() {
+        result.setListeners(new SuccessListener<Integer>() {
             @Override
             public void onSuccess(Integer result) {
                 downLatch.countDown();
@@ -79,7 +76,7 @@ public class UseCaseTest {
         Callable<String> sampleUseCase = new SampleExceptionTestUseCase();
 
         ShaftFuture<String> result = executor.submit(sampleUseCase);
-        result.setListeners(null, new ShaftFuture.ErrorListener() {
+        result.setListeners(null, new ErrorListener() {
             @Override
             public void onError(Throwable e) {
                 downLatch.countDown();

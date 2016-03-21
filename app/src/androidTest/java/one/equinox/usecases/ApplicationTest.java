@@ -1,4 +1,4 @@
-package one.equinox.usecases;
+package one.equinox.shaft;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

@@ -1,4 +1,4 @@
-package one.equinox.usecases.usecases;
+package one.equinox.shaft.usecases;
 
 
 import java.util. concurrent.Callable;
